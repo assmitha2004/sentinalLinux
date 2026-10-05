@@ -1,0 +1,48 @@
+# SentinelAI agent configuration (/etc/sentinelai/agent.yaml)
+# Secrets (enrollment token) live in /etc/sentinelai/agent.env, never here.
+server:
+  url: ""                 # e.g. https://sentinel.example.org  (set by install.sh)
+  verify_tls: true
+  ca_bundle: null         # path to a private CA bundle if your server uses one
+  timeout: 15
+
+agent:
+  state_dir: /var/lib/sentinelai
+  heartbeat_interval: 30      # seconds; also how often queued dashboard scans are picked up
+  metrics_interval: 5
+  process_interval: 10        # process/network/service snapshot
+  security_scan_interval: 300 # STANDARD scan without slow filesystem walks
+  full_scan_interval: 86400   # FULL scan (SUID, binaries, rootkit, updates, benchmark)
+  benchmark_interval: 0       # 0 = benchmark only on demand
+  queue_max_items: 5000       # bounded offline outbox
+  scan_timeout: 900
+
+logging:
+  level: INFO
+  file: null                  # null = stdout (journald under systemd)
+
+thresholds:
+  disk: {warn: 80, high: 90, critical: 95}
+  cpu_high: 90
+  memory_high: 90
+  swap_high: 80
+  process_cpu_high: 80
+  process_mem_high: 30
+
+paths:
+  binaries: [/usr/bin, /usr/sbin, /bin, /sbin, /usr/local/bin, /usr/local/sbin]
+  suid_roots: [/usr, /bin, /sbin, /opt, /home, /var, /etc, /tmp, /srv, /root]
+  writable_roots: [/etc, /usr, /bin, /sbin, /lib, /opt, /var/lib, /srv]
+  writable_excludes: [/var/lib/docker, /var/lib/containers]
+  temp_dirs: [/tmp, /var/tmp, /dev/shm]
+  hash_binaries: false        # true = SHA-256 every binary in `binaries` (slow)
+
+network:
+  expected_listen_ports: [22, 53, 631]
+  suspicious_ports: [1337, 4444, 5555, 6666, 6667, 31337, 12345, 9001, 1080]
+
+# Optional SCAP benchmark overrides (auto-detected when omitted)
+# benchmark:
+#   content_dirs: [/opt/scap]
+#   datastream: /usr/share/xml/scap/ssg/content/ssg-debian12-ds.xml
+#   profile: xccdf_org.ssgproject.content_profile_cis_level1_server

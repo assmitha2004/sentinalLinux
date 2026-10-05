@@ -1,0 +1,38 @@
+[Unit]
+Description=SentinelAI agent - BOSS 10 health & security monitoring
+Documentation=file:///opt/sentinelai/agent/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@SERVICE_USER@
+Group=@SERVICE_USER@
+EnvironmentFile=/etc/sentinelai/agent.env
+Environment=SENTINEL_CONFIG=/etc/sentinelai/agent.yaml
+ExecStart=/opt/sentinelai/agent/venv/bin/python /opt/sentinelai/agent/main.py run
+Restart=on-failure
+RestartSec=10
+# --- least privilege (restricted mode) ---
+# Read-only access to everything the checks inspect, plus process/socket visibility and
+# read access to firewall rules. No write access outside the state directory.
+AmbientCapabilities=@CAPS@
+CapabilityBoundingSet=@CAPS@
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/sentinelai
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+# PrivateTmp must stay off: /tmp, /var/tmp and /dev/shm are scanned for executables.
+PrivateTmp=no
+Nice=10
+IOSchedulingClass=idle
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
